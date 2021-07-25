@@ -2,29 +2,31 @@ package main
 
 import (
 	"net/http"
-	// "context"
-	"log"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"google.golang.org/grpc"
+	"github.com/go-chi/render"
+
+	"github.com/JuanJTorres11/restaurant-api/Controller"
 )
 
 func main() {
-	conn, err := grpc.Dial("localhost:9080", grpc.WithInsecure())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-	// dgraphClient := dgo.NewDgraphClient(api.NewDgraphClient(conn))
-
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(render.SetContentType(render.ContentTypeJSON))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("hello world"))
+	})
+	r.Route("/load", func(r chi.Router) {
+		r.Get("/", Controller.LoadData)
+		r.Get("/{date}", Controller.LoadDataDate)
+	})
+	r.Route("/buyers", func(r chi.Router) {
+		r.Get("/", Controller.ListBuyers)
+		r.Get("/{buyerID}", Controller.GetBuyer)
 	})
 
 	http.ListenAndServe(":8000", r)
