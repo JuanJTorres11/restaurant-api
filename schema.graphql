@@ -1,0 +1,21 @@
+type Buyer {
+  id: String! @id
+  name: String!
+  age: Int @search
+  transactions: [Transaction] @hasInverse(field: "buyer")
+}
+
+type Product {
+  id: String! @id
+  name: String!
+  price: Int!
+  transactions: [Transaction]
+}
+
+type Transaction {
+  id: String! @id
+  buyer: Buyer
+  ip: String!
+  device: String!
+  products: [Product] @hasInverse(field: "transactions")
+}
