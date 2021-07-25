@@ -9,18 +9,27 @@ import (
 )
 
 func LoadData(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	date := chi.URLParam(r, "date")
-	if date != "" {
-		w.Write([]byte("loading..." + date))
-	} else {
-		w.Write([]byte("loading..."))
+	resp, err := Model.GetBuyers(date)
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(`{
+		"Status": "Error",
+		"Message": "There was an error retrieving the data"
+		}
+		`))
+		return
 	}
+
+	json.NewEncoder(w).Encode(resp)
 }
 
 func ListBuyers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	resp, err := Model.GetBuyers()
+	resp, err := Model.ListBuyers()
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte(`{
