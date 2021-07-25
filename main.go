@@ -22,7 +22,7 @@ func main() {
 	})
 	r.Route("/load", func(r chi.Router) {
 		r.Get("/", Controller.LoadData)
-		r.Get("/{date}", Controller.LoadDataDate)
+		r.Get("/{date}", Controller.LoadData)
 	})
 	r.Route("/buyers", func(r chi.Router) {
 		r.Get("/", Controller.ListBuyers)

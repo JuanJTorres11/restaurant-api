@@ -1,25 +1,33 @@
 package Model
 
 import (
+	"context"
 	"log"
 
-	"github.com/dgraph-io/dgo/v210"
-	"github.com/dgraph-io/dgo/v210/protos/api"
-	"google.golang.org/grpc"
+	"github.com/machinebox/graphql"
 )
 
-func getDB() (*dgo.Dgraph, func()) {
-	conn, err := grpc.Dial("localhost:9080", grpc.WithInsecure())
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-	db := dgo.NewDgraphClient(api.NewDgraphClient(conn))
+var client = graphql.NewClient("http://localhost:8080/graphql")
 
-	return db, func() {
-		if err := conn.Close(); err != nil {
-			log.Printf("Error while closing connection:%v", err)
-		}
+func GetBuyers() (interface{}, error) {
+	ctx := context.Background()
+
+	q := graphql.NewRequest(`
+	query {
+		queryBuyer {
+			id
+			name
+			age
+		  }
 	}
+	`)
+	var resp interface{}
+	err := client.Run(ctx, q, &resp)
+	if err != nil {
+		log.Println(err)
+		log.Println(resp)
+	}
+
+	return resp, err
 
 }
