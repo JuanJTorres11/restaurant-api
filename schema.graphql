@@ -1,7 +1,7 @@
 type Buyer {
   id: String! @id
   name: String!
-  age: Int @search
+  age: Int!
   transactions: [Transaction] @hasInverse(field: "buyer")
 }
 
@@ -15,7 +15,7 @@ type Product {
 type Transaction {
   id: String! @id
   buyer: Buyer
-  ip: String!
+  ip: String! @search
   device: String!
   products: [Product] @hasInverse(field: "transactions")
 }
