@@ -10,6 +10,10 @@ type Buyer struct {
 	Age  int    `json:"age,omitempty"`
 }
 
+type BuyerID struct {
+	ID string `json:"id,omitempty"`
+}
+
 func formatBuyers(r []byte) []Buyer {
 	var buyers []Buyer
 	json.Unmarshal(r, &buyers)
@@ -21,9 +25,6 @@ func formatBuyers(r []byte) []Buyer {
 			list = append(list, item)
 		}
 	}
-	//buyersJson, _ := json.Marshal(list)
-	//formated := string(buyersJson)
-	//replacer := strings.NewReplacer(`"id"`, "id", `"name"`, "name", `"age"`, "age")
-	//res := replacer.Replace(formated)
+
 	return list
 }

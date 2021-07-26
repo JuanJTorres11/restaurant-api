@@ -10,7 +10,7 @@ import (
 )
 
 const BUYERS_ENDPOINT = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/buyers?date="
-const TRANSACTIONS_ENPOINT = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/transactions?date="
+const TRANSACTIONS_ENDPOINT = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/transactions?date="
 const PRODUCTS_ENDPOINT = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/products?date="
 
 var client = graphql.NewClient("http://localhost:8080/graphql")
@@ -59,7 +59,7 @@ func putBuyers(newBuyers []Buyer) (interface{}, error) {
 
 	q := graphql.NewRequest(`
 	mutation ($data: [AddBuyerInput!]!){
-		addBuyer(input :$data , upsert: true){
+		addBuyer(input: $data , upsert: true){
 			numUids
 	  }
 	}
@@ -97,14 +97,51 @@ func putProducts(newProducts []Product) (interface{}, error) {
 
 	q := graphql.NewRequest(`
 	mutation ($data: [AddProductInput!]!){
-		addProduct(input :$data , upsert: true){
+		addProduct(input: $data , upsert: true){
 		numUids
 	  }
 	}
 	`)
 
 	q.Var("data", newProducts)
-	log.Println(q)
+	var resp interface{}
+	err := client.Run(ctx, q, &resp)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return resp, err
+}
+
+func GetTransactions(date string) (interface{}, error) {
+	response, err := http.Get(TRANSACTIONS_ENDPOINT + date)
+	if err != nil {
+		log.Panicln("There was an error trying to connect to the transactions endpoint")
+	}
+	defer response.Body.Close()
+
+	res, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Panicln("There was an error trying to read the document from the transactions endpoint")
+	}
+
+	formatedTransactions := formatTransactions(res)
+
+	return putTransactions(formatedTransactions)
+}
+
+func putTransactions(newTransactions []Transaction) (interface{}, error) {
+	ctx := context.Background()
+
+	q := graphql.NewRequest(`
+	mutation ($data: [AddTransactionInput!]!){
+		addTransaction(input: $data , upsert: true){
+		numUids
+	  }
+	}
+	`)
+
+	q.Var("data", newTransactions)
 	var resp interface{}
 	err := client.Run(ctx, q, &resp)
 	if err != nil {
