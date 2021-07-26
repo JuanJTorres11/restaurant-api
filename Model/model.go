@@ -65,6 +65,44 @@ func putBuyers(newBuyers string) (interface{}, error) {
 	}
 	`)
 
+	var resp interface{}
+	err := client.Run(ctx, q, &resp)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return resp, err
+}
+
+func GetProducts(date string) (interface{}, error) {
+	response, err := http.Get(PRODUCTS_ENDPOINT + date)
+	if err != nil {
+		log.Panicln("There was an error trying to connect to the products endpoint")
+	}
+	defer response.Body.Close()
+
+	res, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Panicln("There was an error trying to read the CSV from the products endpoint")
+	}
+
+	formatedProducts := formatProducts(res)
+
+	return putProducts(formatedProducts)
+}
+
+func putProducts(newProducts []Product) (interface{}, error) {
+	ctx := context.Background()
+
+	q := graphql.NewRequest(`
+	mutation ($data: [AddProductInput!]!){
+		addProduct(input :$data , upsert: true){
+		numUids
+	  }
+	}
+	`)
+
+	q.Var("data", newProducts)
 	log.Println(q)
 	var resp interface{}
 	err := client.Run(ctx, q, &resp)
