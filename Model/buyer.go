@@ -2,7 +2,6 @@ package Model
 
 import (
 	"encoding/json"
-	"strings"
 )
 
 type Buyer struct {
@@ -11,7 +10,7 @@ type Buyer struct {
 	Age  int    `json:"age,omitempty"`
 }
 
-func formatBuyers(r []byte) string {
+func formatBuyers(r []byte) []Buyer {
 	var buyers []Buyer
 	json.Unmarshal(r, &buyers)
 	allKeys := make(map[string]bool)
@@ -22,9 +21,9 @@ func formatBuyers(r []byte) string {
 			list = append(list, item)
 		}
 	}
-	buyersJson, _ := json.Marshal(list)
-	formated := string(buyersJson)
-	replacer := strings.NewReplacer(`"id"`, "id", `"name"`, "name", `"age"`, "age")
-	res := replacer.Replace(formated)
-	return res
+	//buyersJson, _ := json.Marshal(list)
+	//formated := string(buyersJson)
+	//replacer := strings.NewReplacer(`"id"`, "id", `"name"`, "name", `"age"`, "age")
+	//res := replacer.Replace(formated)
+	return list
 }

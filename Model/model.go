@@ -54,17 +54,18 @@ func ListBuyers() (interface{}, error) {
 	return resp, err
 }
 
-func putBuyers(newBuyers string) (interface{}, error) {
+func putBuyers(newBuyers []Buyer) (interface{}, error) {
 	ctx := context.Background()
 
 	q := graphql.NewRequest(`
-	mutation {
-		addBuyer(input: ` + newBuyers + `, upsert: true) {
+	mutation ($data: [AddBuyerInput!]!){
+		addBuyer(input :$data , upsert: true){
 			numUids
 	  }
 	}
 	`)
 
+	q.Var("data", newBuyers)
 	var resp interface{}
 	err := client.Run(ctx, q, &resp)
 	if err != nil {

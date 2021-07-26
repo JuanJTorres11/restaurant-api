@@ -12,8 +12,8 @@ func LoadData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	date := chi.URLParam(r, "date")
-	// resp, err := Model.GetBuyers(date)
-	resp, err := Model.GetProducts(date)
+	resp, err := Model.GetBuyers(date)
+	// resp, err := Model.GetProducts(date)
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte(`{
