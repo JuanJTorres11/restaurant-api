@@ -12,20 +12,41 @@ func LoadData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	date := chi.URLParam(r, "date")
-	// resp, err := Model.GetBuyers(date)
-	// resp, err := Model.GetProducts(date)
-	resp, err := Model.GetTransactions(date)
-	if err != nil {
+	_, err1 := Model.GetBuyers(date)
+	if err1 != nil {
 		w.WriteHeader(500)
 		w.Write([]byte(`{
 		"Status": "Error",
-		"Message": "There was an error retrieving the data"
+		"Message": "There was an error retrieving the data of the buyers"
 		}
 		`))
 		return
 	}
-
-	json.NewEncoder(w).Encode(resp)
+	_, err2 := Model.GetProducts(date)
+	if err2 != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(`{
+		"Status": "Error",
+		"Message": "There was an error retrieving the data of the products"
+		}
+		`))
+		return
+	}
+	_, err3 := Model.GetTransactions(date)
+	if err3 != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(`{
+		"Status": "Error",
+		"Message": "There was an error retrieving the data of the transactions"
+		}
+		`))
+		return
+	}
+	w.Write([]byte(`{
+		"Status": "Success",
+		"Message": "All the data has been uploaded successfully"
+		}
+		`))
 }
 
 func ListBuyers(w http.ResponseWriter, r *http.Request) {
