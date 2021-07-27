@@ -2,12 +2,17 @@ package Controller
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/JuanJTorres11/restaurant-api/Model"
 	"github.com/go-chi/chi/v5"
 )
+
+type GetBuyerResponse struct {
+	Buyer               Model.Buyer `json:"Buyer"`
+	OtherBuyers         []string    `json:"Other_Buyers"`
+	RecommendedProducts []string    `json:"Recommended_Products"`
+}
 
 func LoadData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -82,9 +87,7 @@ func GetBuyer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(buyer)
-	log.Println(buyerNames)
-	log.Println(len(productNames))
+	response := GetBuyerResponse{buyer, buyerNames, productNames}
 
-	json.NewEncoder(w).Encode(buyer)
+	json.NewEncoder(w).Encode(response)
 }
