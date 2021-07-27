@@ -2,6 +2,7 @@ package Controller
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/JuanJTorres11/restaurant-api/Model"
@@ -67,6 +68,23 @@ func ListBuyers(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetBuyer(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	id := chi.URLParam(r, "buyerID")
-	w.Write([]byte("loading..." + id))
+	buyer, buyerNames, productNames, err := Model.GetBuyer(id)
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(`{
+		"Status": "Error",
+		"Message": "There was an error retrieving the data"
+		}
+		`))
+		return
+	}
+
+	log.Println(buyer)
+	log.Println(buyerNames)
+	log.Println(len(productNames))
+
+	json.NewEncoder(w).Encode(buyer)
 }

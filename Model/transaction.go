@@ -12,6 +12,19 @@ type Transaction struct {
 	Products []ProductID `json:"products,omitempty"`
 }
 
+type TransactionBuyer struct {
+	Buyer BuyerName `json:"buyer,omitempty"`
+}
+
+type TransactionProducts struct {
+	Products []ProductNames `json:"products,omitempty"`
+}
+
+type SimpleTransaction struct {
+	IP       string    `json:"ip,omitempty"`
+	Products []Product `json:"products,omitempty"`
+}
+
 func formatTransactions(r []byte) []Transaction {
 	var transactions []Transaction
 	p := string(r)

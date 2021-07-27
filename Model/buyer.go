@@ -10,8 +10,18 @@ type Buyer struct {
 	Age  int    `json:"age,omitempty"`
 }
 
+type SimpleBuyer struct {
+	Name         string              `json:"name,omitempty"`
+	Age          int                 `json:"age,omitempty"`
+	Transactions []SimpleTransaction `json:"transactions,omitempty"`
+}
+
 type BuyerID struct {
 	ID string `json:"id,omitempty"`
+}
+
+type BuyerName struct {
+	Name string `json:"name,omitempty"`
 }
 
 func formatBuyers(r []byte) []Buyer {

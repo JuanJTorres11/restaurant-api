@@ -5,9 +5,22 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/machinebox/graphql"
 )
+
+type QueryBuyer struct {
+	Buyer SimpleBuyer `json:"getBuyer,omitempty"`
+}
+
+type QueryTransaction struct {
+	Buyers []TransactionBuyer `json:"queryTransaction,omitempty"`
+}
+
+type queryProduct struct {
+	Product []ProductTransactions `json:"queryProduct,omitempty"`
+}
 
 const BUYERS_ENDPOINT = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/buyers?date="
 const TRANSACTIONS_ENDPOINT = "https://kqxty15mpg.execute-api.us-east-1.amazonaws.com/transactions?date="
@@ -32,6 +45,147 @@ func GetBuyers(date string) (interface{}, error) {
 	return putBuyers(formatedReponse)
 }
 
+func GetBuyer(id string) (Buyer, []string, []string, error) {
+	ctx := context.Background()
+
+	q1 := graphql.NewRequest(`
+	query ($id: String!) {
+		getBuyer(id: $id) {
+		  name
+		  age
+		  transactions {
+			ip
+			products {
+			  id
+			  name
+			  price
+			}
+		  }
+		}
+	}
+	`)
+
+	q1.Var("id", id)
+	var resp QueryBuyer
+	err := client.Run(ctx, q1, &resp)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	buyer := Buyer{id, resp.Buyer.Name, resp.Buyer.Age}
+
+	ips, ids := obtainIpsIds(resp)
+
+	buyerNames := queryTransaction(ips)
+
+	productNames := queryProducts(ids)
+
+	return buyer, buyerNames, productNames, err
+}
+
+func obtainIpsIds(result QueryBuyer) ([]string, []string) {
+	var ips []string
+	var ids []string
+	mapId := make(map[string]bool)
+	mapIp := make(map[string]bool)
+
+	for _, st := range result.Buyer.Transactions {
+		if _, value := mapIp[st.IP]; !value {
+			mapIp[st.IP] = true
+			ips = append(ips, st.IP)
+		}
+		for _, pi := range st.Products {
+			if _, val := mapId[pi.ID]; !val {
+				mapId[pi.ID] = true
+				ids = append(ids, pi.ID)
+			}
+		}
+
+	}
+	return ips, ids
+}
+
+func queryTransaction(ips []string) []string {
+	ctx := context.Background()
+
+	q1 := graphql.NewRequest(`
+	query ($ip: String!) {
+		queryTransaction (filter: {ip: {anyofterms: $ip}}) {
+		  buyer {
+			name
+		  }
+		}
+	}
+	`)
+
+	q1.Var("ip", strings.Join(ips, " "))
+	var resp QueryTransaction
+	err := client.Run(ctx, q1, &resp)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	var names []string
+	mapNames := make(map[string]bool)
+
+	for _, v := range resp.Buyers {
+		if _, val := mapNames[v.Buyer.Name]; !val {
+			mapNames[v.Buyer.Name] = true
+			names = append(names, v.Buyer.Name)
+		}
+	}
+
+	return names
+}
+
+func queryProducts(ids []string) []string {
+	ctx := context.Background()
+
+	q1 := graphql.NewRequest(`
+	query ($id: [String!]!) {
+		queryProduct (filter: {id: {in: $id}}) {
+		  transactions {
+			products (filter: { not: {id: {in: $id}}}){
+			  name
+			}
+		  }
+		}
+	}
+	`)
+
+	q1.Var("id", ids)
+	var resp queryProduct
+	err := client.Run(ctx, q1, &resp)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	var names []string
+	mapNames := make(map[string]bool)
+
+	for _, v := range resp.Product {
+		for _, pn := range v.Transactions {
+			for _, pn2 := range pn.Products {
+				if _, val := mapNames[pn2.Name]; !val {
+					mapNames[pn2.Name] = true
+					names = append(names, pn2.Name)
+					if len(names) > 9 {
+						break
+					}
+				}
+			}
+			if len(names) > 9 {
+				break
+			}
+		}
+		if len(names) > 9 {
+			break
+		}
+	}
+
+	return names
+}
+
 func ListBuyers() (interface{}, error) {
 	ctx := context.Background()
 
@@ -47,8 +201,7 @@ func ListBuyers() (interface{}, error) {
 	var resp interface{}
 	err := client.Run(ctx, q, &resp)
 	if err != nil {
-		log.Println(err)
-		log.Println(resp)
+		log.Panicln(err)
 	}
 
 	return resp, err
@@ -69,7 +222,7 @@ func putBuyers(newBuyers []Buyer) (interface{}, error) {
 	var resp interface{}
 	err := client.Run(ctx, q, &resp)
 	if err != nil {
-		log.Println(err)
+		log.Panicln(err)
 	}
 
 	return resp, err
@@ -107,7 +260,7 @@ func putProducts(newProducts []Product) (interface{}, error) {
 	var resp interface{}
 	err := client.Run(ctx, q, &resp)
 	if err != nil {
-		log.Println(err)
+		log.Panicln(err)
 	}
 
 	return resp, err
@@ -145,7 +298,7 @@ func putTransactions(newTransactions []Transaction) (interface{}, error) {
 	var resp interface{}
 	err := client.Run(ctx, q, &resp)
 	if err != nil {
-		log.Println(err)
+		log.Panicln(err)
 	}
 
 	return resp, err

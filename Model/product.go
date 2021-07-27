@@ -17,6 +17,14 @@ type ProductID struct {
 	ID string `json:"id,omitempty"`
 }
 
+type ProductNames struct {
+	Name string `json:"name,omitempty"`
+}
+
+type ProductTransactions struct {
+	Transactions []TransactionProducts `json:"transactions,omitempty"`
+}
+
 func formatProducts(r []byte) []Product {
 	var products []Product
 	reader := csv.NewReader(bytes.NewReader(r))
