@@ -78,7 +78,7 @@ func GetBuyer(id string) (QueryBuyer, []string, []string, error) {
 	var productNames []string
 
 	if len(ips) > 0 && len(ids) > 0 {
-		buyerNames = queryTransaction(ips)
+		buyerNames = queryTransaction(ips, id)
 		productNames = queryProducts(ids)
 	}
 
@@ -107,13 +107,13 @@ func obtainIpsIds(result QueryBuyer) ([]string, []string) {
 	return ips, ids
 }
 
-func queryTransaction(ips []string) []string {
+func queryTransaction(ips []string, id string) []string {
 	ctx := context.Background()
 
 	q1 := graphql.NewRequest(`
-	query ($ip: String!) {
+	query ($ip: String!, $id:String!) {
 		queryTransaction (filter: {ip: {anyofterms: $ip}}) {
-		  buyer {
+		  buyer (filter: {not : {id: {eq: $id}}}){
 			name
 		  }
 		}
@@ -121,6 +121,8 @@ func queryTransaction(ips []string) []string {
 	`)
 
 	q1.Var("ip", strings.Join(ips, " "))
+	q1.Var("id", id)
+
 	var resp QueryTransaction
 	err := client.Run(ctx, q1, &resp)
 	if err != nil {
@@ -131,7 +133,7 @@ func queryTransaction(ips []string) []string {
 	mapNames := make(map[string]bool)
 
 	for _, v := range resp.Buyers {
-		if _, val := mapNames[v.Buyer.Name]; !val {
+		if _, val := mapNames[v.Buyer.Name]; !val && v.Buyer.Name != "" {
 			mapNames[v.Buyer.Name] = true
 			names = append(names, v.Buyer.Name)
 		}
