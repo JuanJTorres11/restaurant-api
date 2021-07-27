@@ -9,9 +9,9 @@ import (
 )
 
 type GetBuyerResponse struct {
-	Buyer               Model.Buyer `json:"Buyer"`
-	OtherBuyers         []string    `json:"Other_Buyers"`
-	RecommendedProducts []string    `json:"Recommended_Products"`
+	Buyer               Model.QueryBuyer `json:"Buyer"`
+	OtherBuyers         []string         `json:"Other_Buyers"`
+	RecommendedProducts []string         `json:"Recommended_Products"`
 }
 
 func LoadData(w http.ResponseWriter, r *http.Request) {

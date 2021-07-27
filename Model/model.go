@@ -45,7 +45,7 @@ func GetBuyers(date string) (interface{}, error) {
 	return putBuyers(formatedReponse)
 }
 
-func GetBuyer(id string) (Buyer, []string, []string, error) {
+func GetBuyer(id string) (QueryBuyer, []string, []string, error) {
 	ctx := context.Background()
 
 	q1 := graphql.NewRequest(`
@@ -72,15 +72,13 @@ func GetBuyer(id string) (Buyer, []string, []string, error) {
 		log.Panicln(err)
 	}
 
-	buyer := Buyer{id, resp.Buyer.Name, resp.Buyer.Age}
-
 	ips, ids := obtainIpsIds(resp)
 
 	buyerNames := queryTransaction(ips)
 
 	productNames := queryProducts(ids)
 
-	return buyer, buyerNames, productNames, err
+	return resp, buyerNames, productNames, err
 }
 
 func obtainIpsIds(result QueryBuyer) ([]string, []string) {
