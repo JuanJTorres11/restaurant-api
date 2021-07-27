@@ -74,9 +74,13 @@ func GetBuyer(id string) (QueryBuyer, []string, []string, error) {
 
 	ips, ids := obtainIpsIds(resp)
 
-	buyerNames := queryTransaction(ips)
+	var buyerNames []string
+	var productNames []string
 
-	productNames := queryProducts(ids)
+	if len(ips) > 0 && len(ids) > 0 {
+		buyerNames = queryTransaction(ips)
+		productNames = queryProducts(ids)
+	}
 
 	return resp, buyerNames, productNames, err
 }
